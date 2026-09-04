@@ -1,0 +1,47 @@
+/* conect3 전용 스타일.
+   SEED 토큰은 루트 app/globals.css에서 불러온다.
+   여기 규칙은 반드시 .conect3-root 안으로 한정한다.
+   전역에 두면 허브와 다른 앱의 배경·글꼴까지 덮어쓴다. */
+
+/* 브랜드 색 치환.
+   SEED의 brand 계열 역할 토큰은 전부 carrot 팔레트를 참조한다.
+   (fg.brand=carrot-600, bg.brand-solid=carrot-600, bg.brand-weak=carrot-100,
+    stroke.brand-solid=carrot-700 ...)
+   그래서 역할 토큰을 하나씩 덮지 않고 팔레트만 네이비로 바꾼다.
+   이러면 파생되는 역할 토큰이 전부 따라오고 서로 어긋나지 않는다.
+   600이 코넥트 포인트 #1e3a8a, 100이 시안에서 쓴 연한 배경 #e8edf9다. */
+.conect3-root {
+  --seed-color-palette-carrot-100: #e8edf9;
+  --seed-color-palette-carrot-200: #d5dff4;
+  --seed-color-palette-carrot-300: #b3c4e9;
+  --seed-color-palette-carrot-400: #8ba3da;
+  --seed-color-palette-carrot-500: #4f6bb5;
+  --seed-color-palette-carrot-600: #1e3a8a;
+  --seed-color-palette-carrot-700: #182f70;
+  --seed-color-palette-carrot-800: #132557;
+  --seed-color-palette-carrot-900: #0e1b3f;
+  --seed-color-palette-carrot-1000: #0a1329;
+
+  /* Tailwind의 @theme는 :root에서 var()를 한 번 치환하고 그 결과가 상속된다.
+     그래서 팔레트를 여기서 바꿔도 --color-* 쪽은 이미 carrot으로 굳은 뒤라
+     유틸(bg-bg-brand-solid 등)이 주황을 그대로 칠한다.
+     brand에서 파생되는 여덟 개만 여기서 다시 이어준다. */
+  --color-fg-brand: var(--seed-color-fg-brand);
+  --color-fg-brand-contrast: var(--seed-color-fg-brand-contrast);
+  --color-bg-brand-solid: var(--seed-color-bg-brand-solid);
+  --color-bg-brand-solid-pressed: var(--seed-color-bg-brand-solid-pressed);
+  --color-bg-brand-weak: var(--seed-color-bg-brand-weak);
+  --color-bg-brand-weak-pressed: var(--seed-color-bg-brand-weak-pressed);
+  --color-stroke-brand-solid: var(--seed-color-stroke-brand-solid);
+  --color-stroke-brand-weak: var(--seed-color-stroke-brand-weak);
+
+  /* 화면 좌우 여백의 단일 출처.
+     앱바·카테고리 타일·목록 행·바텀시트가 전부 이 선에 선다.
+     행 여백을 개별로 주면 리셋 특정도에 먹혀 사라진 적이 있다. */
+  --gutter: 20px;
+
+  min-height: 100dvh;
+  background: var(--seed-color-bg-layer-default);
+  color: var(--seed-color-fg-neutral);
+  font-family: var(--font-plex), "IBM Plex Sans KR", -apple-system, sans-serif;
+}

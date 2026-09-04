@@ -1,0 +1,10 @@
+node_modules/
+dist/
+android/.gradle/
+android/app/build/
+android/build/
+ios/App/Pods/
+*.log
+*.tsbuildinfo
+public/*.apk
+.DS_Store

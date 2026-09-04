@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+/* 당근 SEED 디자인 토큰 (Apache-2.0, 고지는 /conect2/my/licenses).
+   base.layered.css는 :root 커스텀 프로퍼티와 .seed-* 로 시작하는
+   자기 클래스만 정의한다. html·body·p 같은 요소 셀렉터가 없어서
+   허브와 다른 앱의 스타일을 덮지 않는다. 확인하고 넣었다.
+   컴포넌트 레시피(all.css)는 가져오지 않는다. 그쪽은 전역 오염이 있다. */
+@import "@seed-design/css/base.layered.css";
+@import "@seed-design/tailwind4-theme";
+
+/* SEED 타이포 스케일을 Tailwind의 text-* 로 잇는 다리.
+   SEED가 내주는 이름은 --font-size-t1 이라 Tailwind 유틸이 생기지 않는다.
+   여기서 --text-t1 로 옮겨야 text-t1 을 쓸 수 있다.
+   값은 clamp라 사용자의 OS 글자 크기 설정을 0.8~1.5배 범위에서 따라간다. */
+@theme {
+  --text-t1: var(--seed-font-size-t1);
+  --text-t1--line-height: var(--seed-line-height-t1);
+  --text-t2: var(--seed-font-size-t2);
+  --text-t2--line-height: var(--seed-line-height-t2);
+  --text-t3: var(--seed-font-size-t3);
+  --text-t3--line-height: var(--seed-line-height-t3);
+  --text-t4: var(--seed-font-size-t4);
+  --text-t4--line-height: var(--seed-line-height-t4);
+  --text-t5: var(--seed-font-size-t5);
+  --text-t5--line-height: var(--seed-line-height-t5);
+  --text-t6: var(--seed-font-size-t6);
+  --text-t6--line-height: var(--seed-line-height-t6);
+  --text-t7: var(--seed-font-size-t7);
+  --text-t7--line-height: var(--seed-line-height-t7);
+  --text-t8: var(--seed-font-size-t8);
+  --text-t8--line-height: var(--seed-line-height-t8);
+  --text-t9: var(--seed-font-size-t9);
+  --text-t9--line-height: var(--seed-line-height-t9);
+  --text-t10: var(--seed-font-size-t10);
+  --text-t10--line-height: var(--seed-line-height-t10);
+}
+
+/* 저장소 공용 디자인 토큰.
+   지금은 conect가 주로 쓰지만 CSS 변수라 다른 앱이 함께 써도 무해하다.
+   특정 앱에만 필요한 값은 그 앱 폴더의 css에 둔다. */
+@theme {
+  --color-soft: #f7f7f8;
+  --color-ink: #171719;
+  --color-sub: #5a5c63;
+  --color-faint: #9ea0a7;
+  --color-line: #e1e2e4;
+  --color-line-soft: #f0f0f2;
+  --color-point: #1e3a8a;
+  --color-point-soft: #e8edf9;
+  --color-positive: #00bf40;
+  --color-negative: #ff4242;
+  --font-sans: "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+html,
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  cursor: pointer;
+}
