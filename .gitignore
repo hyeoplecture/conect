@@ -8,3 +8,8 @@ ios/App/Pods/
 *.tsbuildinfo
 public/*.apk
 .DS_Store
+
+.omc/*
+!.omc/plans/
+!.omc/specs/
+!.omc/handoffs/
