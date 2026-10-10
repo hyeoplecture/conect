@@ -1,7 +1,7 @@
 # 커넥트 화면 보드(screens) 명세
 
 - 상태: **확정** (2026-10-10, 사용자 승인). 이 명세에 적힌 것만 개발함
-- 담당: 개발 1팀. 기획 세션이 단방향으로 전달함. 질문이 있으면 명세에 없는 것만 기획 세션(projects-04)에 SendMessage
+- 담당: 개발 세션(ID 918408fc-8469-473d-89b2-afabd8711b4a). 기획 세션이 단방향으로 전달함. 질문이 있으면 명세에 없는 것만 기획 세션(projects-04)에 SendMessage
 - 대상 저장소: `C:\Users\PC\Desktop\Projects\conect` (main 브랜치에서 직접 작업. 브랜치를 따지 않음)
 - 근거 노트(읽기 전용): `C:\Users\PC\Desktop\Projects\conect-sd-design-system\_thinking\003-screens-계획\001-스딩-screens-조사와-커넥트-계획.md`
 - 참고 구현(읽기 전용): `C:\Users\PC\Desktop\Projects\sding\src\lib\screens\*`, `...\sding\src\app\screens\*`
