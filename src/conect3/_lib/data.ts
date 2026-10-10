@@ -317,4 +317,7 @@ function hydratePreview() {
   hydrate("checkout", draft);
 }
 
-if (isPreview) hydratePreview();
+// 빌드 조건을 여기서도 직접 써야 운영 빌드에서 hydratePreview 와 미리보기 시드가 번들에서 빠진다.
+if (import.meta.env.DEV || import.meta.env.VITE_SCREENS === "1") {
+  if (isPreview) hydratePreview();
+}
