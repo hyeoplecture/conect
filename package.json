@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
+    "test": "vitest run",
     "cap:sync": "npm run build && cap sync",
     "build:android": "npm run cap:sync && android\\gradlew.bat -p android assembleDebug",
     "android": "npm run cap:sync && cap open android",
@@ -31,6 +32,7 @@
     "@vitejs/plugin-react": "^5.0.4",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.2",
-    "vite": "^7.1.4"
+    "vite": "^7.1.4",
+    "vitest": "^5.0.3"
   }
 }

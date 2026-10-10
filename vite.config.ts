@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
@@ -13,4 +14,5 @@ export default defineConfig({
     ],
   },
   build: { outDir: "dist", emptyOutDir: true },
+  test: { environment: "node", include: ["src/**/*.test.ts"] },
 });

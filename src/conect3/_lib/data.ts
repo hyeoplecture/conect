@@ -3,8 +3,10 @@
 // 타입과 표. 화면은 여기서만 데이터를 가져간다.
 // 표의 실제 저장은 store.ts가 맡는다.
 
-import { cell, newId, table, type Row } from "./store";
-import { buildScenario } from "./seed-scenario";
+import { cell, hydrate, newId, table, type Row } from "./store";
+import { buildPreviewScenario, buildScenario } from "./seed-scenario";
+import { isPreview, previewPersona } from "./preview";
+import { PERSONA_USER_ID, SAMPLE } from "../../screens/samples";
 
 /* ---------- 분야 ---------- */
 
@@ -203,6 +205,8 @@ export const ADMIN_EMAIL = "admin@conect.kr";
 const SEED_VERSION = 3;
 
 export function seedOnce() {
+  // 미리보기는 모듈이 열릴 때 메모리에 이미 채웠다(아래 hydratePreview). 저장소에 쓰지 않는다.
+  if (isPreview) return;
   if (seedVersion.get() >= SEED_VERSION) return;
 
   const d = buildScenario();
@@ -274,3 +278,43 @@ export type CheckoutDraft = {
 };
 
 export const checkoutDraft = cell<CheckoutDraft | null>("checkout", null);
+
+/* ---------- 화면 보드 미리보기 ---------- */
+
+// preview=1 로 열린 문서는 localStorage 와 무관하게 고정 시드를 메모리에만 올린다.
+// 화면이 처음 그려질 때 이미 채워져 있어야 "없는 예약" 같은 빈 화면으로 튕기지 않는다.
+// 세션은 as= 값에 해당하는 고정 회원으로 덮는다. guest 는 로그인하지 않은 상태다.
+function hydratePreview() {
+  const d = buildPreviewScenario(ADMIN_EMAIL);
+  hydrate("users", d.users);
+  hydrate("experts", d.experts);
+  hydrate("availability", d.availability);
+  hydrate("bookings", d.bookings);
+  hydrate("payments", d.payments);
+  hydrate("refunds", d.refunds);
+  hydrate("settlements", d.settlements);
+  hydrate("reviews", d.reviews);
+  hydrate("posts", d.posts);
+  hydrate("comments", d.comments);
+  hydrate("notifications", d.notifications);
+  hydrate("reports", d.reports);
+  hydrate("seedVersion", SEED_VERSION);
+  hydrate("session", PERSONA_USER_ID[previewPersona]);
+
+  // 결제 화면 세 개는 앞 화면이 남긴 값을 읽는다. 쓰기가 막혀 있어 직접 채워 둔다.
+  const slot = d.availability
+    .filter((a) => a.expertId === SAMPLE.expertId && a.state === "open")
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))[0];
+  const draft: CheckoutDraft = {
+    expertSlug: SAMPLE.expertSlug,
+    startsAt: slot ? slot.startsAt : new Date().toISOString(),
+    guestName: "김미리",
+    guestPhone: "010-1111-2222",
+    guestEmail: "preview-user@conect.kr",
+    note: "",
+    method: "card",
+  };
+  hydrate("checkout", draft);
+}
+
+if (isPreview) hydratePreview();

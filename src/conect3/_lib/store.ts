@@ -7,6 +7,7 @@
 // React가 경고를 띄우고 화면이 한 번 깜빡인다. 서버 몫으로는 항상 빈 값을 준다.
 
 import { useSyncExternalStore } from "react";
+import { isPreview, warnReadOnly } from "./preview";
 
 const PREFIX = "conect3.";
 
@@ -18,7 +19,8 @@ const listeners = new Map<string, Set<() => void>>();
 function read<T>(key: string, fallback: T): T {
   if (cache.has(key)) return cache.get(key) as T;
   let value = fallback;
-  if (typeof window !== "undefined") {
+  // 미리보기(화면 보드)에서는 localStorage 를 읽지 않는다. 메모리 값만 쓴다.
+  if (!isPreview && typeof window !== "undefined") {
     try {
       const raw = window.localStorage.getItem(PREFIX + key);
       if (raw) value = JSON.parse(raw) as T;
@@ -31,6 +33,11 @@ function read<T>(key: string, fallback: T): T {
 }
 
 function write<T>(key: string, value: T) {
+  // 미리보기는 읽기 전용. 결제 확정이나 예약 생성이 돌아도 데이터가 바뀌지 않는다.
+  if (isPreview) {
+    warnReadOnly(key);
+    return;
+  }
   cache.set(key, value);
   if (typeof window !== "undefined") {
     try {
@@ -50,8 +57,19 @@ function subscribe(key: string, fn: () => void) {
   };
 }
 
+/** 미리보기 전용. 쓰기 차단을 거치지 않고 메모리에 값을 올린다. localStorage 는 건드리지 않는다. */
+export function hydrate<T>(key: string, value: T) {
+  if (!isPreview) return;
+  cache.set(key, value);
+  listeners.get(key)?.forEach((fn) => fn());
+}
+
 /** 저장된 값 전체를 지운다. 설정 화면의 초기화에서 쓴다. */
 export function resetAll() {
+  if (isPreview) {
+    warnReadOnly("resetAll");
+    return;
+  }
   if (typeof window === "undefined") return;
   const keys: string[] = [];
   for (let i = 0; i < window.localStorage.length; i++) {

@@ -28,6 +28,7 @@ import type {
   User,
 } from "./data";
 import { SEED_EXPERTS } from "./seed";
+import { SAMPLE } from "../../screens/samples";
 
 export type ScenarioData = {
   users: User[];
@@ -1055,5 +1056,365 @@ export function buildScenario(): ScenarioData {
     comments,
     notifications,
     reports,
+  };
+}
+
+/* ---------- 화면 보드 미리보기용 고정 데이터 ---------- */
+// 일반 씨앗(buildScenario)은 그대로 두고, 미리보기에서만 이 데이터를 덧붙인다.
+// 화면 보드는 동적 주소(예약 상세, 전문가 상세 등)에 쓸 id 가 매번 같아야 하므로
+// src/screens/samples.ts 의 SAMPLE 값과 같은 id 로 행을 만든다.
+
+export function buildPreviewScenario(adminEmail: string): ScenarioData {
+  const d = buildScenario();
+
+  const userId = SAMPLE.userId;
+  const expertUserId = SAMPLE.expertUserId;
+  const expertId = SAMPLE.expertId;
+  const created = daysAgo(60);
+
+  const previewUsers: User[] = [
+    {
+      id: userId,
+      email: "preview-user@conect.kr",
+      password: "conect1234",
+      name: "김미리",
+      phone: "010-1111-2222",
+      role: "user",
+      expertId: null,
+      marketing: true,
+      createdAt: created,
+      deletedAt: null,
+    },
+    {
+      id: expertUserId,
+      email: "preview-expert@conect.kr",
+      password: "conect1234",
+      name: "박전문",
+      phone: "010-3333-4444",
+      role: "user",
+      expertId,
+      marketing: false,
+      createdAt: created,
+      deletedAt: null,
+    },
+    {
+      id: SAMPLE.adminUserId,
+      email: adminEmail,
+      password: "conect1234",
+      name: "운영자",
+      phone: "",
+      role: "admin",
+      expertId: null,
+      marketing: false,
+      createdAt: created,
+      deletedAt: null,
+    },
+  ];
+
+  const previewExperts: Expert[] = [
+    {
+      id: expertId,
+      userId: expertUserId,
+      slug: SAMPLE.expertSlug,
+      name: "박전문",
+      job: "세무사",
+      field: "세무",
+      headline: "프리랜서와 소상공인 세금 상담",
+      bio: "10년간 개인사업자와 프리랜서의 종합소득세, 부가세 신고를 맡아 왔습니다.",
+      pricePerHour: 80000,
+      status: "approved",
+      ratingCount: 0,
+      ratingSum: 0,
+      payout: { bank: "국민은행", account: "123-456-789012", holder: "박전문", business: null },
+      createdAt: created,
+    },
+    {
+      id: SAMPLE.newcomerExpertId,
+      userId: null,
+      slug: SAMPLE.newcomerSlug,
+      name: "최신입",
+      job: "변호사",
+      field: "법률",
+      headline: "임대차와 계약 분쟁 상담",
+      bio: "올해 활동을 시작한 변호사입니다. 임대차 분쟁과 계약서 검토를 주로 맡습니다.",
+      pricePerHour: 50000,
+      status: "approved",
+      ratingCount: 0,
+      ratingSum: 0,
+      payout: null,
+      createdAt: daysAgo(3),
+    },
+  ];
+
+  // 시간표: 두 전문가 모두 내일부터 14일, 매일 10·14·16시
+  const previewAvailability: Availability[] = [];
+  const base = new Date(NOW);
+  base.setHours(0, 0, 0, 0);
+  for (const eid of [expertId, SAMPLE.newcomerExpertId]) {
+    for (let k = 1; k <= 14; k++) {
+      for (const h of [10, 14, 16]) {
+        const t = new Date(base);
+        t.setDate(base.getDate() + k);
+        t.setHours(h, 0, 0, 0);
+        previewAvailability.push({
+          id: `av_${eid}_${t.getTime()}`,
+          expertId: eid,
+          startsAt: t.toISOString(),
+          state: "open",
+        });
+      }
+    }
+  }
+
+  const code = (ms: number, n: number) => {
+    const t = new Date(ms);
+    const yy = String(t.getFullYear()).slice(2);
+    const mm = String(t.getMonth() + 1).padStart(2, "0");
+    const dd = String(t.getDate()).padStart(2, "0");
+    return `C${yy}${mm}${dd}${9000 + n}`;
+  };
+
+  const mk = (
+    id: string,
+    n: number,
+    startsMs: number,
+    status: BookingStatus,
+    method: PaymentMethod,
+    note: string,
+    reviewId: string | null,
+  ): Booking => ({
+    id,
+    code: code(startsMs, n),
+    expertId,
+    expertSlug: SAMPLE.expertSlug,
+    expertName: "박전문",
+    expertJob: "세무사",
+    userId,
+    startsAt: iso(startsMs),
+    guestName: "김미리",
+    guestPhone: "010-1111-2222",
+    guestEmail: "preview-user@conect.kr",
+    note,
+    amount: 80000,
+    method,
+    status,
+    meetUrl: `https://meet.google.com/prv-${String(n).padStart(4, "0")}-xyz`,
+    reviewId,
+    createdAt: iso(startsMs - 5 * DAY),
+  });
+
+  // 예약 4건(확정·완료·취소·노쇼) + 정산 지급 완료 표시용 완료 1건
+  const previewBookings: Booking[] = [
+    mk(SAMPLE.bookingConfirmed, 1, dayAt(2, 14), "confirmed", "card", "종합소득세 신고를 처음 해 봅니다. 자료 준비 방법이 궁금합니다.", null),
+    mk(SAMPLE.bookingCompleted, 2, dayAt(-10, 11), "completed", "kakaopay", "부가세 환급이 가능한지 알고 싶습니다.", SAMPLE.reviewId),
+    mk(SAMPLE.bookingCanceled, 3, dayAt(-3, 15), "canceled", "card", "", null),
+    mk(SAMPLE.bookingNoShow, 4, dayAt(-6, 10), "no_show", "naverpay", "", null),
+    mk("bk_preview_completed_paid", 5, dayAt(-25, 16), "completed", "card", "", "rev_preview_2"),
+  ];
+
+  // 시간표에 같은 시각이 있으면 예약됨으로 바꾼다
+  const confirmedAt = new Date(previewBookings[0].startsAt).getTime();
+  previewAvailability.forEach((a) => {
+    if (a.expertId === expertId && new Date(a.startsAt).getTime() === confirmedAt) a.state = "booked";
+  });
+
+  const previewPayments: Payment[] = previewBookings.map((b) => ({
+    id: `pay_${b.id}`,
+    bookingId: b.id,
+    amount: b.amount,
+    method: b.method,
+    status: b.status === "canceled" ? "partial_canceled" : b.status === "no_show" ? "canceled" : "paid",
+    cardLast4: "4242",
+    paidAt: b.createdAt,
+  }));
+
+  const previewRefunds: Refund[] = [
+    {
+      id: "rfd_bk_preview_canceled",
+      bookingId: SAMPLE.bookingCanceled,
+      paymentId: "pay_bk_preview_canceled",
+      feeRate: 0.3,
+      amount: Math.round(80000 * 0.7),
+      reason: "일정이 바뀌어 취소합니다",
+      refundedAt: daysAgo(3),
+    },
+    {
+      id: "rfd_bk_preview_noshow",
+      bookingId: SAMPLE.bookingNoShow,
+      paymentId: "pay_bk_preview_noshow",
+      feeRate: 0,
+      amount: 80000,
+      reason: "상담 시간에 나타나지 않음",
+      refundedAt: daysAgo(5),
+    },
+  ];
+
+  const stl = (b: Booking, gross: number, status: Settlement["status"], paidAt: string | null): Settlement => {
+    const fee = Math.round(gross * 0.2);
+    return {
+      id: `stl_${b.id}`,
+      expertId,
+      bookingId: b.id,
+      gross,
+      fee,
+      net: gross - fee,
+      status,
+      paidAt,
+    };
+  };
+
+  const [bConfirmed, bCompleted, bCanceled, bNoShow, bPaid] = previewBookings;
+  const previewSettlements: Settlement[] = [
+    stl(bConfirmed, 80000, "pending", null),
+    stl(bCompleted, 80000, "ready", null),
+    stl(bCanceled, Math.round(80000 * 0.3), "ready", null),
+    stl(bNoShow, 0, "paid", daysAgo(1)),
+    stl(bPaid, 80000, "paid", daysAgo(16)),
+  ];
+
+  // 후기 6개. 예약에 묶인 2개와 이력 4개라 평점이 보이고, 신고된 후기 1개는 운영자 화면용이다.
+  const rv = (
+    id: string,
+    bookingId: string,
+    rating: number,
+    body: string,
+    reply: string | null,
+    ageDays: number,
+    reportedAt: string | null = null,
+  ): Review => ({
+    id,
+    bookingId,
+    expertId,
+    userId: bookingId ? userId : "",
+    userName: "김O리",
+    rating,
+    body,
+    reply,
+    reportedAt,
+    createdAt: daysAgo(ageDays),
+  });
+
+  const previewReviews: Review[] = [
+    rv(SAMPLE.reviewId, SAMPLE.bookingCompleted, 5, "자료를 어떻게 모아야 하는지 차근차근 알려 주셔서 신고가 훨씬 수월했습니다.", null, 8),
+    rv("rev_preview_2", "bk_preview_completed_paid", 4, "질문마다 근거를 같이 설명해 주셔서 믿고 맡길 수 있었습니다.", "좋게 봐 주셔서 감사합니다.", 23),
+    rv("rev_preview_h1", "", 5, "세금 구조를 쉽게 풀어 주셔서 이해가 잘 됐습니다.", null, 120),
+    rv("rev_preview_h2", "", 5, "시간이 부족할 줄 알았는데 핵심만 정확히 짚어 주셨어요.", null, 150),
+    rv("rev_preview_h3", "", 3, "내용은 좋았지만 시간이 조금 부족했습니다.", null, 200),
+    rv("rev_preview_h4", "", 2, "기대한 답을 듣지 못했습니다. 설명이 너무 빨랐어요.", null, 90, daysAgo(88)),
+  ];
+
+  // 전문가 평점은 후기 합과 맞춘다 (일반 씨앗과 같은 규칙)
+  previewExperts[0].ratingCount = previewReviews.length;
+  previewExperts[0].ratingSum = previewReviews.reduce((sum, r) => sum + r.rating, 0);
+
+  const previewPosts: Post[] = [
+    {
+      id: SAMPLE.postId,
+      expertId,
+      body: "프리랜서 5월 종합소득세 신고, 올해 달라진 점 세 가지를 정리했습니다. 경비 처리 기준이 특히 바뀌었으니 영수증을 미리 모아 두세요.",
+      likes: 12,
+      createdAt: daysAgo(2),
+    },
+  ];
+
+  const previewComments: Comment[] = [
+    {
+      id: "cmt_preview_1",
+      postId: SAMPLE.postId,
+      userId,
+      userName: "김O리",
+      body: "경비 처리 기준 바뀐 부분 더 궁금합니다.",
+      createdAt: iso(NOW - 30 * HOUR),
+    },
+    {
+      id: "cmt_preview_2",
+      postId: SAMPLE.postId,
+      userId,
+      userName: "김O리",
+      body: "정리해 주셔서 감사합니다. 도움이 많이 됐어요.",
+      createdAt: iso(NOW - 20 * HOUR),
+    },
+  ];
+
+  const previewNotifications: Notification[] = [
+    {
+      id: "ntf_preview_1",
+      userId,
+      title: "예약이 확정됐습니다",
+      body: "상담 하루 전에 다시 안내드립니다. 링크는 예약 상세에 있습니다.",
+      href: `/conect3/my/reservations/${SAMPLE.bookingConfirmed}`,
+      channel: "알림톡",
+      readAt: null,
+      createdAt: iso(NOW - 2 * HOUR),
+    },
+    {
+      id: "ntf_preview_2",
+      userId,
+      title: "결제가 완료됐습니다",
+      body: "영수증은 마이페이지에서 확인하실 수 있습니다.",
+      href: "/conect3/my",
+      channel: "이메일",
+      readAt: iso(NOW - 20 * HOUR),
+      createdAt: iso(NOW - 26 * HOUR),
+    },
+    {
+      id: "ntf_preview_3",
+      userId: expertUserId,
+      title: "새 예약이 들어왔습니다",
+      body: "상담 전에 전달받은 질문을 확인해 주세요.",
+      href: `/conect3/expert/bookings/${SAMPLE.bookingConfirmed}`,
+      channel: "앱",
+      readAt: null,
+      createdAt: iso(NOW - 3 * HOUR),
+    },
+    {
+      id: "ntf_preview_4",
+      userId: expertUserId,
+      title: "정산 예정 안내",
+      body: "이번 주 금요일에 지급될 예정입니다.",
+      href: null,
+      channel: "알림톡",
+      readAt: iso(NOW - 10 * HOUR),
+      createdAt: iso(NOW - 40 * HOUR),
+    },
+  ];
+
+  // 운영자 화면: 열린 신고 2건(후기 1, 문의 1)
+  const previewReports: Report[] = [
+    {
+      id: "rpt_preview_1",
+      kind: "review",
+      targetId: "rev_preview_h4",
+      userId,
+      userName: "김O리",
+      body: "근거 없는 비난이 담긴 후기라 신고합니다.",
+      status: "open",
+      createdAt: daysAgo(1),
+    },
+    {
+      id: "rpt_preview_2",
+      kind: "inquiry",
+      targetId: SAMPLE.bookingCompleted,
+      userId,
+      userName: "김O리",
+      body: "상담 링크가 열리지 않았던 건에 대해 문의드립니다.",
+      status: "open",
+      createdAt: daysAgo(2),
+    },
+  ];
+
+  return {
+    users: [...d.users, ...previewUsers],
+    experts: [...d.experts, ...previewExperts],
+    availability: [...d.availability, ...previewAvailability],
+    bookings: [...d.bookings, ...previewBookings],
+    payments: [...d.payments, ...previewPayments],
+    refunds: [...d.refunds, ...previewRefunds],
+    settlements: [...d.settlements, ...previewSettlements],
+    reviews: [...d.reviews, ...previewReviews],
+    posts: [...d.posts, ...previewPosts],
+    comments: [...d.comments, ...previewComments],
+    notifications: [...d.notifications, ...previewNotifications],
+    reports: [...d.reports, ...previewReports],
   };
 }
