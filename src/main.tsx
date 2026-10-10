@@ -1,6 +1,6 @@
-import { StrictMode, type ReactNode } from "react";
+import { StrictMode, Suspense, lazy, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
-import { HashRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
+import { HashRouter, Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { StatusBar, Style } from "@capacitor/status-bar";
 
 import Home from "@/app/conect3/page";
@@ -50,7 +50,21 @@ function AdminRoutes() {
   return <AdminLayout><Outlet /></AdminLayout>;
 }
 
+// 화면 보드(#/screens). 개발 서버이거나 VITE_SCREENS=1 로 빌드했을 때만 들어간다.
+// 조건이 빌드 시점에 거짓으로 굳으면 보드 코드는 번들에 포함되지 않는다.
+const SCREENS_ENABLED = import.meta.env.DEV || import.meta.env.VITE_SCREENS === "1";
+const ScreensBoard = SCREENS_ENABLED ? lazy(() => import("@/screens/Board")) : null;
+
 function App() {
+  const { pathname } = useLocation();
+  if (ScreensBoard && pathname === "/screens") {
+    return (
+      <Suspense fallback={null}>
+        <ScreensBoard />
+      </Suspense>
+    );
+  }
+
   return (
     <AppFrame>
       <Routes>
